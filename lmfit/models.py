@@ -441,7 +441,7 @@ class PseudoVoigtModel(Model):
                        'independent_vars': independent_vars})
         super(PseudoVoigtModel, self).__init__(pvoigt, **kwargs)
         self.set_param_hint('sigma', min=0)
-        self.set_param_hint('fraction', value=0.5)
+        self.set_param_hint('fraction', value=0.5, max=1.0, min=0.0)
         self.set_param_hint('fwhm', expr=fwhm_expr(self))
 
     def guess(self, data, x=None, negative=False, **kwargs):
