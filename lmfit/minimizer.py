@@ -25,6 +25,7 @@ from numpy.dual import inv
 from numpy.linalg import LinAlgError
 from scipy.optimize import brute as scipy_brute
 from scipy.optimize import leastsq as scipy_leastsq
+from scipy.optimize import least_squares
 from scipy.optimize import minimize as scipy_minimize
 from scipy.optimize import differential_evolution
 from scipy.stats import cauchy as cauchy_dist
@@ -41,20 +42,12 @@ from . import uncertainties
 from .parameter import Parameter, Parameters
 
 #  scipy version notes:
-#  currently scipy 0.15 is required.
+#  currently scipy 0.17 is required.
 #  feature           scipy version added
 #    minimize              0.11
 #    OptimizeResult        0.13
 #    diff_evolution        0.15
 #    least_squares         0.17
-
-# check for scipy.opitimize.least_squares
-HAS_LEAST_SQUARES = False
-try:
-    from scipy.optimize import least_squares
-    HAS_LEAST_SQUARES = True
-except ImportError:
-    pass
 
 # check for EMCEE
 HAS_EMCEE = False
@@ -363,10 +356,11 @@ class Minimizer(object):
                 iter_cb(params, iter, resid, *fcn_args, **fcn_kws)
 
             where `params` will have the current parameter values, `iter`
-            the iteration, `resid` the current residual array, and `*fcn_args`
+            the iteration number, `resid` the current residual array, and `*fcn_args`
             and `**fcn_kws` are passed to the objective function.
         scale_covar : bool, optional
-            Whether to automatically scale the covariance matrix (`leastsq` only).
+            Whether to automatically scale the covariance matrix (default is True,
+            `leastsq` only).
         nan_policy : str, optional
             Specifies action if `userfcn` (or a Jacobian) returns NaN
             values. One of:
@@ -1202,11 +1196,6 @@ class Minimizer(object):
            Return value changed to :class:`MinimizerResult`.
 
         """
-
-        if not HAS_LEAST_SQUARES:
-            raise NotImplementedError("SciPy with a version higher than 0.17 "
-                                      "is needed for this method.")
-
         result = self.prepare_fit(params)
         result.method = 'least_squares'
 
@@ -1611,11 +1600,11 @@ class Minimizer(object):
             same name from `scipy.optimize`, or use
             `scipy.optimize.minimize` with the same `method` argument.
             Thus '`leastsq`' will use `scipy.optimize.leastsq`, while
-            '`powell`' will use `scipy.optimize.minimizer(....,
+            '`powell`' will use `scipy.optimize.minimizer(...,
             method='powell')`
 
             For more details on the fitting methods please refer to the
-            `SciPy docs <http://docs.scipy.org/doc/scipy/reference/optimize.html>`__.
+            `SciPy docs <https://docs.scipy.org/doc/scipy/reference/optimize.html>`__.
 
         params : :class:`~lmfit.parameter.Parameters`, optional
             Parameters of the model to use as starting values.
@@ -1793,7 +1782,7 @@ def _make_random_gen(seed):
 VALID_NAN_POLICIES = ('propagate', 'omit', 'raise')
 def validate_nan_policy(policy):
     """validate, rationalize nan_policy, for back compatibility
-    and compatibility with Pandas missing convention
+    and compatibility with Pandas missing convention.
     """
     if policy in VALID_NAN_POLICIES:
         return policy
@@ -1870,9 +1859,9 @@ def _nan_policy(arr, nan_policy='raise', handle_inf=True):
 def minimize(fcn, params, method='leastsq', args=None, kws=None,
              scale_covar=True, iter_cb=None, reduce_fcn=None, **fit_kws):
     """Perform a fit of a set of parameters by minimizing an objective (or
-    cost) function using one one of the several available methods.
+    cost) function using one of the several available methods.
 
-    The minimize function takes a objective function to be minimized,
+    The minimize function takes an objective function to be minimized,
     a dictionary (:class:`~lmfit.parameter.Parameters`) containing the model
     parameters, and several optional arguments.
 
@@ -1910,10 +1899,10 @@ def minimize(fcn, params, method='leastsq', args=None, kws=None,
         name from `scipy.optimize`, or use `scipy.optimize.minimize` with
         the same `method` argument.  Thus '`leastsq`' will use
         `scipy.optimize.leastsq`, while '`powell`' will use
-        `scipy.optimize.minimizer(...., method='powell')`
+        `scipy.optimize.minimizer(..., method='powell')`
 
         For more details on the fitting methods please refer to the
-        `SciPy docs <http://docs.scipy.org/doc/scipy/reference/optimize.html>`__.
+        `SciPy docs <https://docs.scipy.org/doc/scipy/reference/optimize.html>`__.
 
     args : tuple, optional
         Positional arguments to pass to `fcn`.
@@ -1922,11 +1911,12 @@ def minimize(fcn, params, method='leastsq', args=None, kws=None,
     iter_cb : callable, optional
         Function to be called at each fit iteration. This function should
         have the signature `iter_cb(params, iter, resid, *args, **kws)`,
-        where where `params` will have the current parameter values, `iter`
-        the iteration, `resid` the current residual array, and `*args`
+        where `params` will have the current parameter values, `iter`
+        the iteration number, `resid` the current residual array, and `*args`
         and `**kws` as passed to the objective function.
     scale_covar : bool, optional
-        Whether to automatically scale the covariance matrix (`leastsq` only).
+        Whether to automatically scale the covariance matrix (default is True,
+        `leastsq` only).
     reduce_fcn : str or callable, optional
         Function to convert a residual array to a scalar value for the scalar
         minimizers. See notes in `Minimizer`.
@@ -1958,7 +1948,7 @@ def minimize(fcn, params, method='leastsq', args=None, kws=None,
     data array, dependent variable, uncertainties in the data, and other
     data structures for the model calculation.
 
-    On output, `params` will be unchanged.  The best-fit values, and where
+    On output, `params` will be unchanged.  The best-fit values and, where
     appropriate, estimated uncertainties and correlations, will all be
     contained in the returned :class:`MinimizerResult`.  See
     :ref:`fit-results-label` for further details.

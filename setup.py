@@ -10,8 +10,8 @@ import versioneer
 # Minimal Python version sanity check
 # taken from the Jupyter Notebook setup.py -- Modified BSD License
 v = sys.version_info
-if v[:2] < (2, 7) or (v[0] >= 3 and v[:2] < (3, 3)):
-    error = "ERROR: lmfit requires Python version 2.7 or 3.3 or above."
+if v[:2] < (2, 7) or (v[0] >= 3 and v[:2] < (3, 4)):
+    error = "ERROR: lmfit requires Python version 2.7 or 3.4 or above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -39,8 +39,8 @@ setup(name = 'lmfit',
       cmdclass = versioneer.get_cmdclass(),
       author = 'LMFit Development Team',
       author_email = 'matt.newville@gmail.com',
-      url          = 'http://lmfit.github.io/lmfit-py/',
-      download_url = 'http://lmfit.github.io//lmfit-py/',
+      url          = 'https://lmfit.github.io/lmfit-py/',
+      download_url = 'https://lmfit.github.io//lmfit-py/',
       install_requires = ['numpy', 'scipy', 'six'],
       license = 'BSD',
       description = "Least-Squares Minimization with Bounds and Constraints",
